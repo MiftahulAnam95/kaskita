@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="KasKita">
+  <rect width="64" height="64" rx="16" fill="#176B55"/>
+  <path d="M20 17v30" stroke="#fff" stroke-width="6" stroke-linecap="round"/>
+  <path d="M42 18 26 32l16 14" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="46" cy="18" r="4" fill="#E8F4EF"/>
+</svg>
