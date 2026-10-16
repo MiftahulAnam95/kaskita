@@ -7,6 +7,13 @@
 (function () {
   'use strict';
 
+  // Pengelola layar muat (js/boot.js). Cadangan kecil bila file itu tidak ada.
+  var Boot = window.KasKitaBoot || {
+    progress: function () {}, done: function () {},
+    ready: function (fn) { fn(); }, onChartReady: function (fn) { fn(); }
+  };
+
+  Boot.progress('Memuat data kas…');
   var Store = window.KasKitaStorage;
   var db = Store.load();
   var cfg = function () { return db.config; };
@@ -415,7 +422,13 @@
         return '<div class="fb-col"><div class="fb-bars"><i class="bi" style="height:' + (r.inc / max * 100) + '%"></i><i class="bo" style="height:' + (r.out / max * 100) + '%"></i></div><small>' + esc(monthShort(r.id)) + '</small></div>';
       }).join('') + '</div>';
     }
-    if (!window.Chart) { fallback(); return; }
+    if (!window.Chart) {
+      fallback();
+      // Chart.js dimuat tidak-blocking oleh js/boot.js; begitu siap, grafik
+      // digambar ulang (hanya bila halaman ringkasan masih tampil).
+      Boot.onChartReady(function () { if (ui.page === 'ringkasan') drawChart(); });
+      return;
+    }
     try {
       box.innerHTML = '<canvas id="cash-chart" role="img" aria-label="Grafik batang pemasukan dan pengeluaran per bulan"></canvas>';
       chart = new window.Chart($('#cash-chart'), {
@@ -1260,13 +1273,20 @@
      --------------------------------------------------------- */
   function init() {
     var root = $('#app'); if (!root) return;
+    Boot.progress('Menyiapkan tampilan…');
     buildShell();
     if (!$('#sheet-root')) {
       document.body.insertAdjacentHTML('beforeend', '<div id="sheet-root"></div><div id="confirm-root"></div><div id="toast-root" class="toasts" role="region" aria-live="polite" aria-label="Notifikasi"></div>');
     }
     renderChrome();
+    render();                       // halaman pertama siap DULU, supaya tidak ada layar kosong
+    Boot.progress('Menampilkan ringkasan kas…');
     route();
-    if (!Store.isPersistent()) toast('LocalStorage tidak tersedia. Data hanya bertahan selama halaman terbuka.', 'warn');
+    // Pesan/toast baru muncul setelah splash tertutup agar tidak terpotong animasi.
+    Boot.ready(function () {
+      if (!Store.isPersistent()) toast('LocalStorage tidak tersedia. Data hanya bertahan selama halaman terbuka.', 'warn');
+    });
+    Boot.done();                    // tutup layar muat: transisi mulus ke aplikasi
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();

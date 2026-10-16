@@ -34,6 +34,14 @@ body {
   -webkit-font-smoothing: antialiased; overflow-x: hidden;
 }
 body.no-scroll { overflow: hidden; }
+
+/* ---------- Transisi masuk (layar muat / splash) ----------
+   Splash itu sendiri (markah + gaya kritis) ada di index.html supaya tampil
+   sejak byte pertama. Aturan di bawah hanya mengatur kemunculan aplikasi:
+   konten disembunyikan selama splash tampil, lalu muncul dengan fade halus. */
+body.is-booting .app { opacity: 0; }
+body.is-ready .app { animation: appIn .34s ease both; }
+@keyframes appIn { from { opacity: 0; } to { opacity: 1; } }
 h1, h2, h3, p { margin: 0; }
 button, input, select, textarea { font: inherit; color: inherit; }
 button { cursor: pointer; }
@@ -458,6 +466,7 @@ button.row-item:hover { background: var(--background); }
 @media print {
   @page { margin: 14mm; }
   body { background: #fff; font-size: 12px; }
+  .app { animation: none; opacity: 1; }
   .sidebar, .bottom-nav, .topbar, .role-bar, .toasts, .no-print, .overlay, .page-head-actions { display: none !important; }
   .app { display: block; }
   main { padding: 0; max-width: none; }

@@ -16,4 +16,15 @@ export default defineConfig({
       "@": path.resolve(__dirname, "src"),
     },
   },
+  // Aplikasi dibuka lewat proxy preview (host seperti 5173-xxxx.e2b.app), bukan
+  // localhost. Tanpa ini Vite 7 menolak permintaan dengan HTTP 403 dan halaman
+  // tampil kosong.
+  server: {
+    host: true,
+    allowedHosts: true,
+  },
+  preview: {
+    host: true,
+    allowedHosts: true,
+  },
 });
