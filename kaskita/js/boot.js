@@ -16,7 +16,7 @@
 (function () {
   'use strict';
 
-  var MIN_SHOW = 420;    // ms — splash minimal tampil sesaat agar transisi mulus
+  var MIN_SHOW = 0;     // ms — 0: masuk langsung tanpa menahan splash (lihat permintaan "langsung masuk")
   var HARD_CAP = 12000;  // ms — jaring pengaman bila ada yang gagal
   var FADE = 260;        // ms — harus sama dengan transisi .boot pada CSS
   var CHART_URL = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js';
