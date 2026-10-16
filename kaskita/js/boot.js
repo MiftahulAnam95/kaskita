@@ -125,10 +125,12 @@
   }
 
   /* ---------- Jaring pengaman ---------- */
-  // Apa pun yang gagal (CDN diblokir, error JS), splash tidak boleh menggantung.
-  window.setTimeout(done, HARD_CAP);
-  window.addEventListener('error', function () { done(); });
-  window.addEventListener('unhandledrejection', function () { done(); });
+  // Bila aplikasi gagal sebelum siap, shell menampilkan pesan gagal; batas ini
+  // hanya menutup splash jika tidak ada kegagalan yang terdeteksi.
+  // Hard cap hanya menutup splash jika bundel tidak menandai kegagalan.
+  window.setTimeout(function () {
+    if (!window.__kaskitaEntryFailed) done();
+  }, HARD_CAP);
   // Halaman dipulihkan dari cache (tombol back) — aplikasi sudah ter-render,
   // jadi splash tidak boleh muncul lagi.
   window.addEventListener('pageshow', function (e) {
