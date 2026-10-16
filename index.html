@@ -9,14 +9,84 @@
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23176B55'/%3E%3Cpath d='M20 17v30' stroke='%23fff' stroke-width='6' stroke-linecap='round'/%3E%3Cpath d='M42 18 26 32l16 14' fill='none' stroke='%23fff' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" />
-    <!-- Chart.js via CDN; jika gagal dimuat, aplikasi memakai grafik cadangan. -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <!-- Font dimuat tanpa memblokir render; bila gagal, font sistem tetap dipakai. -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'" />
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" /></noscript>
+    <style>
+      /* Kritis: gaya splash ditulis inline supaya muncul seketika, sebelum
+         bundle JS/CSS selesai dimuat. Aturan lainnya ada di kaskita/css/style.css. */
+      #boot { position: fixed; inset: 0; z-index: 200; display: grid; place-items: center; background: #176B55; color: #fff;
+        opacity: 1; visibility: visible; transition: opacity .26s ease, visibility .26s ease; padding: 24px; text-align: center;
+        font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+      #boot.is-done { opacity: 0; visibility: hidden; }
+      .boot-inner { display: flex; flex-direction: column; align-items: center; gap: 18px; }
+      .boot-mark { width: 64px; height: 64px; border-radius: 18px; background: rgba(255,255,255,.14); display: grid; place-items: center; animation: bootPulse 1.6s ease-in-out infinite; }
+      .boot-mark svg { width: 34px; height: 34px; }
+      .boot-title { font-size: 19px; font-weight: 700; letter-spacing: -.02em; }
+      .boot-text { font-size: 13px; color: rgba(255,255,255,.75); min-height: 18px; font-weight: 500; }
+      .boot-bar { width: 148px; height: 4px; border-radius: 99px; background: rgba(255,255,255,.22); overflow: hidden; }
+      .boot-bar i { display: block; height: 100%; width: 100%; border-radius: inherit; background: #fff; transform: scaleX(.08); transform-origin: left center; transition: transform .45s ease; }
+      .boot-skel { width: min(420px, 80vw); height: 132px; border-radius: 14px; background: rgba(255,255,255,.1); }
+      @keyframes bootPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+      @media (prefers-reduced-motion: reduce) { #boot * { animation: none !important; } }
+    </style>
   </head>
   <body>
+    <!-- Layar muat: tampil sejak byte pertama, bukan halaman putih kosong.
+         Ditutup oleh js/boot.js (dipanggil dari src/kaskita-entry.js) setelah
+         aplikasi selesai merender halaman pertama. -->
+    <div id="boot" role="status" aria-live="polite" aria-label="Memuat aplikasi KasKita">
+      <div class="boot-inner">
+        <span class="boot-mark" aria-hidden="true"><svg viewBox="0 0 64 64"><path d="M20 17v30" stroke="#fff" stroke-width="7" stroke-linecap="round" /><path d="M42 18 26 32l16 14" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" /></svg></span>
+        <div>
+          <div class="boot-title">KasKita</div>
+          <div class="boot-text" id="boot-text">Menyiapkan aplikasi…</div>
+        </div>
+        <div class="boot-bar" aria-hidden="true"><i id="boot-bar"></i></div>
+        <div class="boot-skel" aria-hidden="true"></div>
+      </div>
+    </div>
+
     <div id="app"></div>
     <noscript>KasKita membutuhkan JavaScript untuk berjalan.</noscript>
+
     <!-- Shell untuk build Vite: memuat file yang sama dari folder kaskita/ -->
-    <script type="module" src="./src/kaskita-entry.js"></script>
+    <script type="module" src="./src/kaskita-entry.js" onerror="window.__kaskitaEntryFailed = true"></script>
+    <script>
+      /* Jaring pengaman: bila bundle gagal dimuat / error, jangan biarkan layar
+         menggantung. Coba sekali lagi via import(), lalu tampilkan pesan ramah. */
+      (function () {
+        var settled = false;
+        document.addEventListener('kaskita:ready', function () { settled = true; });
+
+        function showFallback() {
+          var boot = document.getElementById('boot');
+          if (!boot) return boot; // splash sudah tertutup => aplikasi berjalan
+          var text = document.getElementById('boot-text');
+          if (text) text.textContent = 'Aplikasi gagal dimuat. Periksa koneksi lalu muat ulang.';
+          var bar = document.getElementById('boot-bar');
+          if (bar) bar.style.background = '#ffd98a';
+          if (!document.getElementById('boot-retry')) {
+            var btn = document.createElement('button');
+            btn.id = 'boot-retry';
+            btn.type = 'button';
+            btn.textContent = 'Muat ulang';
+            btn.style.cssText = 'min-height:44px;padding:10px 20px;border:0;border-radius:12px;background:#fff;color:#176B55;font:inherit;font-weight:600;cursor:pointer';
+            btn.addEventListener('click', function () { location.reload(); });
+            document.querySelector('.boot-inner').appendChild(btn);
+          }
+          return boot;
+        }
+
+        function giveUp() { if (!settled) showFallback(); }
+
+        window.setTimeout(function () {
+          if (settled || window.__kaskitaEntryFailed) { giveUp(); return; }
+          // Tidak ada tanda selesai setelah 6 detik -> coba muat ulang modul sekali.
+          import('/src/kaskita-entry.js').catch(function () { giveUp(); });
+          window.setTimeout(giveUp, 6000);
+        }, 6000);
+      })();
+    </script>
   </body>
 </html>

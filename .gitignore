@@ -1,0 +1,9 @@
+# Dependensi & hasil build
+node_modules/
+dist/
+*.local
+
+# Berkas editor / OS
+.DS_Store
+.vscode/
+.idea/

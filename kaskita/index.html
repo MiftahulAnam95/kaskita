@@ -11,13 +11,43 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
   <link rel="stylesheet" href="css/style.css">
-  <!-- Chart.js via CDN. Jika gagal dimuat, aplikasi memakai grafik batang cadangan. -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    /* Kritis: gaya splash ditulis inline supaya layar muat muncul seketika,
+       sebelum CSS/JS eksternal selesai dimuat. */
+    #boot{position:fixed;inset:0;z-index:200;display:grid;place-items:center;background:#176B55;color:#fff;
+      opacity:1;visibility:visible;transition:opacity .26s ease,visibility .26s ease;font-family:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+      -webkit-font-smoothing:antialiased;padding:24px;text-align:center}
+    #boot.is-done{opacity:0;visibility:hidden}
+    .boot-inner{display:flex;flex-direction:column;align-items:center;gap:18px}
+    .boot-mark{width:64px;height:64px;border-radius:18px;background:rgba(255,255,255,.14);display:grid;place-items:center;animation:bootPulse 1.6s ease-in-out infinite}
+    .boot-mark svg{width:34px;height:34px}
+    .boot-title{font-size:19px;font-weight:700;letter-spacing:-.02em}
+    .boot-text{font-size:13px;color:rgba(255,255,255,.75);min-height:18px;font-weight:500}
+    .boot-bar{width:148px;height:4px;border-radius:99px;background:rgba(255,255,255,.22);overflow:hidden}
+    .boot-bar i{display:block;height:100%;width:100%;border-radius:inherit;background:#fff;transform:scaleX(.08);transform-origin:left center;transition:transform .45s ease}
+    .boot-skel{width:min(420px,80vw);height:132px;border-radius:14px;background:rgba(255,255,255,.1)}
+    @keyframes bootPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+    @media (prefers-reduced-motion:reduce){#boot *{animation:none!important}}
+  </style>
 </head>
 <body>
+  <!-- Layar muat: tampil sejak byte pertama, ditutup oleh js/boot.js setelah aplikasi siap. -->
+  <div id="boot" role="status" aria-live="polite" aria-label="Memuat aplikasi KasKita">
+    <div class="boot-inner">
+      <span class="boot-mark" aria-hidden="true"><svg viewBox="0 0 64 64"><path d="M20 17v30" stroke="#fff" stroke-width="7" stroke-linecap="round"/><path d="M42 18 26 32l16 14" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      <div>
+        <div class="boot-title">KasKita</div>
+        <div class="boot-text" id="boot-text">Menyiapkan aplikasi…</div>
+      </div>
+      <div class="boot-bar" aria-hidden="true"><i id="boot-bar"></i></div>
+      <div class="boot-skel" aria-hidden="true"></div>
+    </div>
+  </div>
+
   <div id="app"></div>
   <noscript>KasKita membutuhkan JavaScript untuk berjalan.</noscript>
 
+  <script src="js/boot.js"></script>
   <script src="js/data.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/app.js"></script>
